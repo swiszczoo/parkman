@@ -1,5 +1,8 @@
 package cz.swisz.parkman.backend;
 
-public interface DataProvider {
+import java.util.Map;
 
+public interface DataProvider {
+    long getSuggestedRefreshTimeInMs();
+    Map<Long, ParkingData> fetchData();
 }
