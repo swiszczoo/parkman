@@ -36,7 +36,7 @@ public final class PwrDataProvider implements DataProvider {
     }
 
     @Override
-    public Map<Long, ParkingData> fetchData() {
+    public Map<Long, ParkingData> fetchData() throws FetchException {
         long timestamp = System.currentTimeMillis();
 
         try {
@@ -56,10 +56,7 @@ public final class PwrDataProvider implements DataProvider {
 
             return response;
         } catch (IOException e) {
-            Log.e("PwrDataProvider", "An error occured: " + e.getMessage());
-            e.printStackTrace();
-
-            return null;
+            throw new FetchException(e);
         }
     }
 

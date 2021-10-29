@@ -4,4 +4,7 @@
         <item quantity="one">%d place</item>
         <item quantity="many">%d places</item>
     </plurals>
+    <string name="refresh">Refresh data</string>
+    <string name="data_loading">Fetching data. Please wait…</string>
+    <string name="data_error">An error occurred! Can\'t fetch data!</string>
 </resources>

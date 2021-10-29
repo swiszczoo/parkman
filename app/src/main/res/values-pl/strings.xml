@@ -5,4 +5,7 @@
         <item quantity="few">%d miejsca</item>
         <item quantity="many">%d miejsc</item>
     </plurals>
+    <string name="refresh">Odśwież dane</string>
+    <string name="data_loading">Ładowanie danych. Proszę czekać…</string>
+    <string name="data_error">Wystąpił błąd! Nie można pobrać danych!</string>
 </resources>
