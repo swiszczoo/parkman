@@ -1,7 +1,5 @@
 package cz.swisz.parkman.backend;
 
-import android.util.Log;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,10 +19,10 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 
 public final class PwrDataProvider implements DataProvider {
-    private final String m_endpointUrl;
     private static final String OP_NAME = "get_parks";
+    private static Map<Long, String> KNOWN_PARKS = null;
 
-    private static Map<Long, String> KNOWN_PARKINGS = null;
+    private final String m_endpointUrl;
 
     public PwrDataProvider(String endpointUrl) {
         m_endpointUrl = endpointUrl;
@@ -50,7 +48,7 @@ public final class PwrDataProvider implements DataProvider {
             JsonArray places = root.getJsonArray("places");
 
             for (int i = 0; i < places.size(); i++) {
-                ParkingData data = parseParkingJsonObject(places.getJsonObject(i));
+                ParkingData data = parseParkJsonObject(places.getJsonObject(i));
                 response.put(data.parkingId, data);
             }
 
@@ -61,22 +59,22 @@ public final class PwrDataProvider implements DataProvider {
     }
 
     @Override
-    public Map<Long, String> getParkingNames() {
-        if (KNOWN_PARKINGS == null) {
-            fillInKnownParkings();
+    public Map<Long, String> getParkNames() {
+        if (KNOWN_PARKS == null) {
+            fillInKnownParks();
         }
 
-        return KNOWN_PARKINGS;
+        return KNOWN_PARKS;
     }
 
-    private void fillInKnownParkings() {
-        KNOWN_PARKINGS = new HashMap<>();
+    private void fillInKnownParks() {
+        KNOWN_PARKS = new HashMap<>();
 
-        KNOWN_PARKINGS.put(2L, "Przy C-13");
-        KNOWN_PARKINGS.put(4L, "Wrońskiego" );
-        KNOWN_PARKINGS.put(5L, "Przy D-20");
-        KNOWN_PARKINGS.put(6L, "Geocentrum");
-        KNOWN_PARKINGS.put(7L, "Architektura");
+        KNOWN_PARKS.put(2L, "Przy C-13");
+        KNOWN_PARKS.put(4L, "Wrońskiego");
+        KNOWN_PARKS.put(5L, "Przy D-20");
+        KNOWN_PARKS.put(6L, "Geocentrum");
+        KNOWN_PARKS.put(7L, "Architektura");
     }
 
     private String constructRequestBody(long timestamp, String operation) {
@@ -114,7 +112,7 @@ public final class PwrDataProvider implements DataProvider {
         }
     }
 
-    private ParkingData parseParkingJsonObject(JsonObject json) throws NumberFormatException {
+    private ParkingData parseParkJsonObject(JsonObject json) throws NumberFormatException {
         ParkingData.Trend freeTrend = ParkingData.Trend.THE_SAME;
         int trendValue = Integer.parseInt(json.getString("trend"));
 

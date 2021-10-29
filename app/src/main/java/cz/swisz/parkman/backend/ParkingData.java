@@ -1,5 +1,7 @@
 package cz.swisz.parkman.backend;
 
+import java.util.Objects;
+
 public class ParkingData {
     enum Trend
     {
@@ -22,5 +24,23 @@ public class ParkingData {
         this.dataTimestamp = dataTimestamp;
         this.trend = trend;
         this.freeCount = freeCount;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ParkingData that = (ParkingData) o;
+        return snapshotId == that.snapshotId
+                && parkingId == that.parkingId
+                && freeCount == that.freeCount
+                && dataTimestamp.equals(that.dataTimestamp)
+                && trend == that.trend;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(snapshotId, parkingId, dataTimestamp, trend, freeCount);
     }
 }
