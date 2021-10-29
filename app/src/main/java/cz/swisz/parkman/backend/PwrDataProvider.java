@@ -20,9 +20,11 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 
-public class PwrDataProvider implements DataProvider {
+public final class PwrDataProvider implements DataProvider {
     private final String m_endpointUrl;
     private static final String OP_NAME = "get_parks";
+
+    private static Map<Long, String> KNOWN_PARKINGS = null;
 
     public PwrDataProvider(String endpointUrl) {
         m_endpointUrl = endpointUrl;
@@ -36,6 +38,7 @@ public class PwrDataProvider implements DataProvider {
     @Override
     public Map<Long, ParkingData> fetchData() {
         long timestamp = System.currentTimeMillis();
+
         try {
             Map<Long, ParkingData> response = new HashMap<>();
 
@@ -58,6 +61,25 @@ public class PwrDataProvider implements DataProvider {
 
             return null;
         }
+    }
+
+    @Override
+    public Map<Long, String> getParkingNames() {
+        if (KNOWN_PARKINGS == null) {
+            fillInKnownParkings();
+        }
+
+        return KNOWN_PARKINGS;
+    }
+
+    private void fillInKnownParkings() {
+        KNOWN_PARKINGS = new HashMap<>();
+
+        KNOWN_PARKINGS.put(2L, "Przy C-13");
+        KNOWN_PARKINGS.put(4L, "Wrońskiego" );
+        KNOWN_PARKINGS.put(5L, "Przy D-20");
+        KNOWN_PARKINGS.put(6L, "Geocentrum");
+        KNOWN_PARKINGS.put(7L, "Architektura");
     }
 
     private String constructRequestBody(long timestamp, String operation) {

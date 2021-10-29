@@ -3,7 +3,10 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Projekty/Parkman/app/src/main/res/layout/activity_main.xml" value="0.13020833333333334" />
+        <entry key="..\:/Projekty/Parkman/app/src/main/res/drawable/bg_few_places.xml" value="0.2703125" />
+        <entry key="..\:/Projekty/Parkman/app/src/main/res/drawable/bg_no_places.xml" value="0.2703125" />
+        <entry key="..\:/Projekty/Parkman/app/src/main/res/layout/activity_main.xml" value="0.264" />
+        <entry key="..\:/Projekty/Parkman/app/src/main/res/layout/fragment_places.xml" value="0.536" />
       </map>
     </option>
   </component>

@@ -5,4 +5,5 @@ import java.util.Map;
 public interface DataProvider {
     long getSuggestedRefreshTimeInMs();
     Map<Long, ParkingData> fetchData();
+    Map<Long, String> getParkingNames();
 }

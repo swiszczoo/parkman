@@ -1,3 +1,7 @@
 <resources>
-    <string name="app_name">Parkman</string>
+    <string name="app_name" translatable="false">Parkman</string>
+    <plurals name="place_count">
+        <item quantity="one">%d place</item>
+        <item quantity="many">%d places</item>
+    </plurals>
 </resources>
