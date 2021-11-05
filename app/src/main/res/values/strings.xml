@@ -11,4 +11,5 @@
     <string name="available">Free places available!</string>
     <string name="places_other">Free places on other parks:</string>
     <string name="places_activity">Place availability changed</string>
+    <string name="parks_header">Free parking places (live data):</string>
 </resources>

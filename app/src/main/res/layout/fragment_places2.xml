@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/sm_parking_group"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/free_zero"
+    android:orientation="horizontal"
+    android:paddingStart="16dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="8dp">
+
+    <TextView
+        android:id="@+id/sm_parking_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:textColor="#fff"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/sm_parking_places"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#fff"
+        android:textSize="30sp" />
+</LinearLayout>

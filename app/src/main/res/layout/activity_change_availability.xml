@@ -28,7 +28,6 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="Wrońskiego"
             android:textColor="#fff"
             android:textSize="40sp" />
 
@@ -41,12 +40,21 @@
             android:textColor="#fff"
             android:textSize="18sp" />
 
+        <LinearLayout
+            android:id="@+id/avail_other_parks"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="16dp"
+            android:orientation="vertical"/>
+
         <Button
             android:id="@+id/avail_exit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="48dp"
+            android:background="#50ffffff"
+            android:foreground="?attr/selectableItemBackground"
             android:padding="24dp"
             android:text="@android:string/ok"
             android:textSize="24sp">

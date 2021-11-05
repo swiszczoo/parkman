@@ -14,15 +14,8 @@ import androidx.annotation.Nullable;
 
 import cz.swisz.parkman.R;
 
-public class ParkingFragment extends FrameLayout {
-    private String m_parkingName;
-    private int m_placeCount;
-
-    private View m_parkingLayout;
-    private TextView m_parkingLabel;
-    private TextView m_placesLabel;
-
-    private static final int FEW_THRESHOLD = 5;
+public class ParkingFragment extends ParkingFragmentTemplate {
+    private boolean m_disabled;
 
     public ParkingFragment(@NonNull Context context) {
         super(context);
@@ -56,12 +49,14 @@ public class ParkingFragment extends FrameLayout {
         updateView();
     }
 
-    private void initState() {
-        m_parkingName = "Parking";
-        m_placeCount = 0;
+    @Override
+    protected void initState() {
+        super.initState();
+        m_disabled = false;
     }
 
-    private void inflateView() {
+    @Override
+    protected void inflateView() {
         LayoutInflater inflater = LayoutInflater.from(getContext());
 
         ViewGroup view = (ViewGroup) inflater.inflate(
@@ -72,14 +67,17 @@ public class ParkingFragment extends FrameLayout {
         m_placesLabel = view.findViewById(R.id.parking_places);
     }
 
-    private void updateView() {
+    @Override
+    protected void updateView() {
         Resources res = getResources();
 
         m_parkingLabel.setText(m_parkingName);
         m_placesLabel.setText(res.getQuantityString(
                 R.plurals.place_count, m_placeCount, m_placeCount));
 
-        if (m_placeCount == 0) {
+        if (m_disabled) {
+            m_parkingLayout.setBackgroundResource(R.drawable.bg_ignored);
+        } else if (m_placeCount == 0) {
             m_parkingLayout.setBackgroundResource(R.drawable.bg_no_places);
         } else if (m_placeCount <= FEW_THRESHOLD) {
             m_parkingLayout.setBackgroundResource(R.drawable.bg_few_places);
@@ -88,28 +86,12 @@ public class ParkingFragment extends FrameLayout {
         }
     }
 
-    public void setParkingName(String name) {
-        m_parkingName = name;
-
+    public void setDisabled(boolean disabled) {
+        m_disabled = disabled;
         updateView();
     }
 
-    public String getParkingName() {
-        return m_parkingName;
-    }
-
-    public void setPlaceCount(int freePlaces) {
-        m_placeCount = freePlaces;
-
-        updateView();
-    }
-
-    public int getPlaceCount() {
-        return m_placeCount;
-    }
-
-    @Override
-    public void setOnLongClickListener(@Nullable OnLongClickListener l) {
-        m_parkingLayout.setOnLongClickListener(l);
+    public boolean isDisabled() {
+        return m_disabled;
     }
 }

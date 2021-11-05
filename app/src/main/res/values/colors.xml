@@ -9,4 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="not_available">#B71C1C</color>
     <color name="available">#2E7D32</color>
+    <color name="free_zero">#B71C1C</color>
+    <color name="free_few">#E65100</color>
+    <color name="free_many">#2E7D32</color>
 </resources>

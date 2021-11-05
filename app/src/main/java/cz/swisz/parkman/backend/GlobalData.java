@@ -10,6 +10,10 @@ public class GlobalData {
     }
 
     public static GlobalData getInstance() {
+        if (s_inst == null) {
+            s_inst = new GlobalData();
+        }
+
         return s_inst;
     }
 
