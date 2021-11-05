@@ -3,6 +3,7 @@
     package="cz.swisz.parkman">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application
         android:allowBackup="true"
@@ -11,6 +12,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.Parkman">
+
         <activity
             android:name=".gui.MainActivity"
             android:exported="true">
@@ -19,6 +21,12 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".gui.ChangeAvailabilityActivity"
+            android:label="@string/places_activity"
+            android:theme="@style/Theme.Parkman.Notification">
         </activity>
     </application>
 

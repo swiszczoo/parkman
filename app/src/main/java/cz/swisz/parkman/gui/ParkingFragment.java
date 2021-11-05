@@ -108,5 +108,8 @@ public class ParkingFragment extends FrameLayout {
         return m_placeCount;
     }
 
-
+    @Override
+    public void setOnLongClickListener(@Nullable OnLongClickListener l) {
+        m_parkingLayout.setOnLongClickListener(l);
+    }
 }

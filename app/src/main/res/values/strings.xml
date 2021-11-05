@@ -7,4 +7,8 @@
     <string name="refresh">Refresh data</string>
     <string name="data_loading">Fetching data. Please wait…</string>
     <string name="data_error">An error occurred! Can\'t fetch data!</string>
+    <string name="not_available">All places occupied!</string>
+    <string name="available">Free places available!</string>
+    <string name="places_other">Free places on other parks:</string>
+    <string name="places_activity">Place availability changed</string>
 </resources>

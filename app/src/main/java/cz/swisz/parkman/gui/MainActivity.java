@@ -14,8 +14,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -64,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
         super.onDestroy();
 
         if(m_watcher != null) {
+            m_watcher.removeObserver(this);
             m_watcher.stop();
         }
     }
@@ -95,6 +94,10 @@ public class MainActivity extends AppCompatActivity implements Observer {
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             fragment.setParkingName(parking.getValue());
             fragment.setPlaceCount(0);
+
+            fragment.setOnLongClickListener(v -> {
+                return true;
+            });
 
             m_fragments.put(parking.getKey(), fragment);
             m_panel.addView(fragment);
