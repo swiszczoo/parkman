@@ -15,4 +15,6 @@
     <string name="service_label">Parkman Data Fetch Service</string>
     <string name="service_title">Parkman - live data</string>
     <string name="service_description">Parking lot places are being monitored in background</string>
+    <string name="tts_no_more">Attention! No more places at %s parking lot</string>
+    <string name="tts_few">Places are available at %s parking lot</string>
 </resources>

@@ -2,6 +2,8 @@ package cz.swisz.parkman.gui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -23,7 +25,8 @@ import cz.swisz.parkman.backend.Observable;
 import cz.swisz.parkman.backend.Observer;
 import cz.swisz.parkman.backend.ParkingData;
 
-public class ChangeAvailabilityActivity extends AppCompatActivity implements Observer {
+public class ChangeAvailabilityActivity extends AppCompatActivity
+        implements Observer, TextToSpeech.OnInitListener {
     public static final class Extras {
         public static final String ALL_OCCUPIED = "all_occupied";
         public static final String PARK_NAME = "park_name";
@@ -36,6 +39,7 @@ public class ChangeAvailabilityActivity extends AppCompatActivity implements Obs
     private Long m_parkKey;
     private LinearLayout m_parkRoot;
     private Button m_exitButton;
+    private TextToSpeech m_tts;
 
     private Map<Long, String> m_otherParkNames;
     private Map<Long, SmallParkingFragment> m_fragments;
@@ -56,6 +60,7 @@ public class ChangeAvailabilityActivity extends AppCompatActivity implements Obs
         setupActivityFromIntent();
         setupKnownParks();
         updateData();
+        tellState();
 
         DataWatcher watcher = GlobalData.getInstance().getWatcher();
         if (watcher != null) {
@@ -71,6 +76,11 @@ public class ChangeAvailabilityActivity extends AppCompatActivity implements Obs
 
         if (watcher != null) {
             watcher.removeObserver(this);
+        }
+
+        if (m_tts != null) {
+            m_tts.stop();
+            m_tts.shutdown();
         }
     }
 
@@ -120,8 +130,7 @@ public class ChangeAvailabilityActivity extends AppCompatActivity implements Obs
 
                     m_fragments.put(id, fragment);
                     m_parkRoot.addView(fragment);
-                }
-                else {
+                } else {
                     m_parkKey = id;
                 }
             }
@@ -139,8 +148,7 @@ public class ChangeAvailabilityActivity extends AppCompatActivity implements Obs
                     if (m_fragments.containsKey(id)) {
                         SmallParkingFragment fragment = m_fragments.get(id);
                         fragment.setPlaceCount((int) value.freeCount);
-                    }
-                    else if (id.equals(m_parkKey)) {
+                    } else if (id.equals(m_parkKey)) {
                         m_parkNameLabel.setText(String.format(Locale.GERMANY, "%s (%d)",
                                 m_parkName, value.freeCount));
                     }
@@ -153,6 +161,26 @@ public class ChangeAvailabilityActivity extends AppCompatActivity implements Obs
     public void onStateChanged(Observable subject) {
         if (subject == GlobalData.getInstance().getWatcher()) {
             runOnUiThread(this::updateData);
+        }
+    }
+
+    private void tellState() {
+        m_tts = new TextToSpeech(this, this);
+    }
+
+    @Override
+    public void onInit(int status) {
+        if(status == TextToSpeech.SUCCESS) {
+            if(m_tts.setLanguage(Locale.forLanguageTag("PL_pl")) != TextToSpeech.LANG_MISSING_DATA) {
+                boolean occupied = getIntent().getBooleanExtra(Extras.ALL_OCCUPIED, true);
+                String format = occupied ? getString(R.string.tts_no_more) : getString(R.string.tts_few);
+                m_tts.speak(String.format(format, getIntent().getStringExtra(Extras.PARK_NAME)),
+                        TextToSpeech.QUEUE_ADD, null,
+                        String.valueOf(System.currentTimeMillis()));
+            }
+            else {
+                Log.w("ChangeAvailability", "TTS does not work");
+            }
         }
     }
 }

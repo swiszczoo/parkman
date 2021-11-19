@@ -8,5 +8,6 @@ public final class DataProviderFactory {
     public static DataProvider newDefaultProvider() {
         return new PwrDataProvider(
                 "https://iparking.pwr.edu.pl/modules/iparking/scripts/ipk_operations.php");
+        //return new MockDataProvider();
     }
 }

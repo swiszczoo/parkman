@@ -5,11 +5,18 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import cz.swisz.parkman.R;
 import cz.swisz.parkman.backend.DataProvider;
@@ -18,6 +25,7 @@ import cz.swisz.parkman.backend.DataWatcher;
 import cz.swisz.parkman.backend.GlobalData;
 import cz.swisz.parkman.backend.Observable;
 import cz.swisz.parkman.backend.Observer;
+import cz.swisz.parkman.backend.ParkingData;
 
 public class FetchService extends Service implements Observer {
     private static final String NOTIFICATION_CHANNEL = "parkman.service";
@@ -25,6 +33,7 @@ public class FetchService extends Service implements Observer {
 
     private DataWatcher m_watcher;
     private DataProvider m_provider;
+    private Map<Long, Boolean> m_previousData;
 
     public static class FetchBinder extends Binder {
         private final FetchService m_service;
@@ -91,7 +100,7 @@ public class FetchService extends Service implements Observer {
         super.onDestroy();
 
         if (m_watcher != null) {
-           m_watcher.stop();
+            m_watcher.stop();
         }
 
         m_ready = false;
@@ -105,6 +114,69 @@ public class FetchService extends Service implements Observer {
 
     @Override
     public void onStateChanged(Observable subject) {
+        if (subject == m_watcher) {
+            if (m_previousData == null) {
+                m_previousData = getParkPlaceState();
+            } else {
+                updateState();
+            }
+        }
+    }
 
+    private Map<Long, Boolean> getParkPlaceState() {
+        Map<Long, ParkingData> data = m_watcher.getCurrentData();
+        Map<Long, Boolean> map = new HashMap<>();
+
+        for (Map.Entry<Long, ParkingData> entry : data.entrySet()) {
+            map.put(entry.getKey(), entry.getValue().freeCount > 0);
+        }
+
+        return map;
+    }
+
+    private void updateState() {
+        Map<Long, Boolean> newState = getParkPlaceState();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String ignored = prefs.getString(MainActivity.PrefKeys.IGNORED_PARKS, "");
+        ArrayList<Long> ignoredList = Utils.parseIgnoredParks(ignored);
+
+        for (Long parkKey : m_previousData.keySet()) {
+            Boolean old = m_previousData.get(parkKey);
+            Boolean neu = newState.get(parkKey);
+
+            if (old == null || neu == null)
+                continue;
+
+            if (ignoredList.contains(parkKey))
+                continue;
+
+            if (neu && !old) {
+                showNewPlacesScreen(parkKey);
+            } else if (!neu && old) {
+                showNoPlacesScreen(parkKey);
+            }
+        }
+
+        m_previousData = newState;
+    }
+
+    private void showNewPlacesScreen(Long key) {
+        Log.i("FetchService", "New places available");
+
+        Intent intent = new Intent(this, ChangeAvailabilityActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(ChangeAvailabilityActivity.Extras.ALL_OCCUPIED, false);
+        intent.putExtra(ChangeAvailabilityActivity.Extras.PARK_NAME, m_provider.getParkNames().get(key));
+        startActivity(intent);
+    }
+
+    private void showNoPlacesScreen(Long key) {
+        Log.i("FetchService", "Places have ended");
+
+        Intent intent = new Intent(this, ChangeAvailabilityActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(ChangeAvailabilityActivity.Extras.ALL_OCCUPIED, true);
+        intent.putExtra(ChangeAvailabilityActivity.Extras.PARK_NAME, m_provider.getParkNames().get(key));
+        startActivity(intent);
     }
 }

@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
     private static final String NOTIFICATION_CHANNEL = "parkman.service";
 
     private DataProvider m_provider;
-    private Map<Long, String> m_parkingNames;
+    private Map<Long, String> m_parkNames;
     private ArrayList<Long> m_ignoredParks;
 
     private Map<Long, ParkingFragment> m_fragments;
@@ -95,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.i(TAG, "Destroying main activity");
 
         if (m_watcher != null) {
             m_watcher.removeObserver(this);
@@ -120,10 +121,10 @@ public class MainActivity extends AppCompatActivity implements Observer {
     }
 
     private void setupKnownParks() {
-        m_parkingNames = m_provider.getParkNames();
+        m_parkNames = m_provider.getParkNames();
         m_fragments = new HashMap<>();
 
-        for (Map.Entry<Long, String> parking : m_parkingNames.entrySet()) {
+        for (Map.Entry<Long, String> parking : m_parkNames.entrySet()) {
             ParkingFragment fragment = new ParkingFragment(this);
             fragment.setLayoutParams(new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -193,26 +194,14 @@ public class MainActivity extends AppCompatActivity implements Observer {
     private void loadSharedPrefs() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String keyString = prefs.getString(PrefKeys.IGNORED_PARKS, "");
-        String[] splittedKeys = keyString.split(";");
-
-        m_ignoredParks.clear();
-        for (String part : splittedKeys) {
-            if (!part.isEmpty())
-                m_ignoredParks.add(Long.parseLong(part));
-        }
+        m_ignoredParks = Utils.parseIgnoredParks(keyString);
     }
 
     private void saveSharedPrefs() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String serialized = Utils.serializeIgnoredParks(m_ignoredParks);
 
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < m_ignoredParks.size(); i++) {
-            if (i > 0)
-                builder.append(';');
-            builder.append(m_ignoredParks.get(i));
-        }
-
-        prefs.edit().putString(PrefKeys.IGNORED_PARKS, builder.toString()).apply();
+        prefs.edit().putString(PrefKeys.IGNORED_PARKS, serialized).apply();
     }
 
     private void createNotificationChannel() {
