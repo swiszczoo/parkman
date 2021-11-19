@@ -1,8 +1,14 @@
 package cz.swisz.parkman.gui;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
@@ -37,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
     }
 
     private static final String TAG = "PARKMAN";
+    private static final String NOTIFICATION_CHANNEL = "parkman.service";
 
     private DataProvider m_provider;
     private Map<Long, String> m_parkingNames;
@@ -48,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
     private View m_errorOverlay;
     private DataWatcher m_watcher;
     private ExecutorService m_executor;
+    private ServiceConnection m_connection = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,21 +71,25 @@ public class MainActivity extends AppCompatActivity implements Observer {
         m_errorOverlay = findViewById(R.id.data_fetch_error);
         m_executor = Executors.newSingleThreadExecutor();
 
+        createNotificationChannel();
         loadSharedPrefs();
         setupKnownParks();
         setupFixedIntervalRefreshJob();
 
         postUpdateDataJob();
-
+        initService();
 
         // Test
-        GlobalData.getInstance().setProvider(m_provider);
-        GlobalData.getInstance().setWatcher(m_watcher);
-
-        Intent intt = new Intent(this, ChangeAvailabilityActivity.class);
-        intt.putExtra(ChangeAvailabilityActivity.Extras.ALL_OCCUPIED, false);
-        intt.putExtra(ChangeAvailabilityActivity.Extras.PARK_NAME, "Wrońskiego");
-        startActivity(intt);
+        Intent serv = new Intent(this, FetchService.class);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serv);
+            } else {
+                startService(serv);
+            }
+        } catch (SecurityException ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override
@@ -121,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
             fragment.setOnClickListener(v -> {
                 Long key = parking.getKey();
-                if(m_ignoredParks.contains(key)) {
+                if (m_ignoredParks.contains(key)) {
                     m_ignoredParks.remove(key);
                     fragment.setDisabled(false);
                 } else {
@@ -203,8 +215,54 @@ public class MainActivity extends AppCompatActivity implements Observer {
         prefs.edit().putString(PrefKeys.IGNORED_PARKS, builder.toString()).apply();
     }
 
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel serviceChannel = new NotificationChannel(
+                    NOTIFICATION_CHANNEL,
+                    getResources().getString(R.string.service_title),
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(serviceChannel);
+        }
+    }
+
+    private void initService() {
+        Intent service = new Intent(this, FetchService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(service);
+        } else {
+            startService(service);
+        }
+
+        m_connection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                Log.i(TAG, "ParkMan service connected");
+
+                synchronized (MainActivity.this) {
+                    m_watcher = GlobalData.getInstance().getWatcher();
+                    m_watcher.addObserver(MainActivity.this);
+                    m_provider = GlobalData.getInstance().getProvider();
+                }
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                Log.i(TAG, "ParkMan service disconnected");
+
+                synchronized (MainActivity.this) {
+
+                }
+            }
+        };
+
+        bindService(service, m_connection, BIND_ABOVE_CLIENT | BIND_AUTO_CREATE);
+    }
+
     @Override
-    public void onStateChanged(Observable subject) {
+    public synchronized void onStateChanged(Observable subject) {
         if (subject == m_watcher) {
             Log.i(TAG, "New data arrived!");
             runOnUiThread(() -> updateData(m_watcher.getCurrentData()));

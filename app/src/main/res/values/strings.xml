@@ -12,4 +12,7 @@
     <string name="places_other">Free places on other parks:</string>
     <string name="places_activity">Place availability changed</string>
     <string name="parks_header">Free parking places (live data):</string>
+    <string name="service_label">Parkman Data Fetch Service</string>
+    <string name="service_title">Parkman - live data</string>
+    <string name="service_description">Parking lot places are being monitored in background</string>
 </resources>

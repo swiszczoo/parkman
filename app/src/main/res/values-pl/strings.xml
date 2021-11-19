@@ -13,4 +13,7 @@
     <string name="places_other">Wolne miejsca na innych parkingach:</string>
     <string name="places_activity">Zmiana dostępności miejsc</string>
     <string name="parks_header">Wolne miejsca parkingowe (na żywo):</string>
+    <string name="service_label">Usługa pobierania danych Parkman</string>
+    <string name="service_title">Parkman - dane na żywo</string>
+    <string name="service_description">Miejsca parkingowe są monitorowane w tle</string>
 </resources>

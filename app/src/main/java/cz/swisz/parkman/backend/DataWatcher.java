@@ -1,5 +1,7 @@
 package cz.swisz.parkman.backend;
 
+import android.util.Log;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -41,7 +43,7 @@ public class DataWatcher implements Observable {
     private void processData() throws FetchException {
         Map<Long, ParkingData> data = m_provider.fetchData();
 
-        synchronized(this) {
+        synchronized (this) {
             if (m_lastSnapshot != null) {
                 boolean different = false;
 
@@ -103,6 +105,16 @@ public class DataWatcher implements Observable {
     public void notifyObservers() {
         for (Observer observer : m_observers) {
             observer.onStateChanged(this);
+        }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+
+        if (m_provider != null || m_timer != null) {
+            Log.w("DataWatcher", "Leaked DataWatcher object. Calling emergency stop()");
+            stop();
         }
     }
 }
