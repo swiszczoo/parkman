@@ -88,6 +88,7 @@ public final class PwrDataProvider implements DataProvider {
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Accept", "application/json");
         conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        conn.setRequestProperty("Connection", "close");
         conn.setRequestProperty("Content-Length", String.valueOf(body.length()));
         conn.setRequestProperty("Referer", "https://iparking.pwr.edu.pl/");
         conn.setRequestProperty("X-Requested-With", "XMLHttpRequest");
