@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/not_available"
+    android:keepScreenOn="true"
     android:orientation="vertical"
     android:padding="16dp">
 

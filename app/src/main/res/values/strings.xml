@@ -17,4 +17,5 @@
     <string name="service_description">Parking lot places are being monitored in background</string>
     <string name="tts_no_more">Attention! No more places at %s parking lot</string>
     <string name="tts_few">Places are available at %s parking lot</string>
+    <string name="action_stop">Stop</string>
 </resources>

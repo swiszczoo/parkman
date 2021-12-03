@@ -33,7 +33,11 @@
         <activity
             android:name=".gui.ChangeAvailabilityActivity"
             android:label="@string/places_activity"
-            android:theme="@style/Theme.Parkman.Notification">
+            android:theme="@style/Theme.Parkman.Notification"
+            android:turnScreenOn="true"
+            android:showOnLockScreen="true"
+            android:showWhenLocked="true"
+            tools:ignore="UnusedAttribute">
         </activity>
 
         <service

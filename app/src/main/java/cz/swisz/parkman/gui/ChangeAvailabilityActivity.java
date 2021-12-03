@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -16,6 +18,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import cz.swisz.parkman.R;
 import cz.swisz.parkman.backend.DataProvider;
@@ -32,6 +36,8 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
         public static final String PARK_NAME = "park_name";
     }
 
+    private static int TIMEOUT_MS = 10000;
+
     private FrameLayout m_root;
     private TextView m_label;
     private TextView m_parkNameLabel;
@@ -40,6 +46,7 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
     private LinearLayout m_parkRoot;
     private Button m_exitButton;
     private TextToSpeech m_tts;
+    private Timer m_timer;
 
     private Map<Long, String> m_otherParkNames;
     private Map<Long, SmallParkingFragment> m_fragments;
@@ -48,6 +55,11 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_availability);
+
+        Window window = getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+        window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+        window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
 
         m_root = findViewById(R.id.avail_root);
         m_label = findViewById(R.id.avail_text);
@@ -61,6 +73,7 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
         setupKnownParks();
         updateData();
         tellState();
+        setupDelayedTask();
 
         DataWatcher watcher = GlobalData.getInstance().getWatcher();
         if (watcher != null) {
@@ -81,6 +94,10 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
         if (m_tts != null) {
             m_tts.stop();
             m_tts.shutdown();
+        }
+
+        if (m_timer != null) {
+            m_timer.cancel();
         }
     }
 
@@ -166,6 +183,16 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
 
     private void tellState() {
         m_tts = new TextToSpeech(this, this);
+    }
+
+    private void setupDelayedTask() {
+        m_timer = new Timer();
+        m_timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(() -> finish());
+            }
+        }, TIMEOUT_MS);
     }
 
     @Override

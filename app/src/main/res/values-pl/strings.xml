@@ -18,4 +18,5 @@
     <string name="service_description">Miejsca parkingowe są monitorowane w tle</string>
     <string name="tts_no_more">Uwaga! Koniec miejsc na parkingu %s</string>
     <string name="tts_few">Nowe miejsca parkingowe na parkingu %s</string>
+    <string name="action_stop">Zatrzymaj</string>
 </resources>

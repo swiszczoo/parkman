@@ -4,7 +4,10 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
@@ -29,11 +32,13 @@ import cz.swisz.parkman.backend.ParkingData;
 
 public class FetchService extends Service implements Observer {
     private static final String NOTIFICATION_CHANNEL = "parkman.service";
+    private static final String BROADCAST_STOP = "cz.swisz.parkman.ACTION_STOP";
     private boolean m_ready;
 
     private DataWatcher m_watcher;
     private DataProvider m_provider;
     private Map<Long, Boolean> m_previousData;
+    private BroadcastReceiver m_receiver;
 
     public static class FetchBinder extends Binder {
         private final FetchService m_service;
@@ -63,6 +68,26 @@ public class FetchService extends Service implements Observer {
         Intent activityIntent = new Intent(this, MainActivity.class);
         activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
+        if (m_receiver == null) {
+            m_receiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    stop();
+                }
+            };
+
+            registerReceiver(m_receiver, new IntentFilter(BROADCAST_STOP));
+        }
+
+        Intent stopIntent = new Intent();
+        stopIntent.setAction(BROADCAST_STOP);
+
+        NotificationCompat.Action.Builder actionBuilder = new NotificationCompat.Action.Builder(
+                null,
+                getString(R.string.action_stop),
+                PendingIntent.getBroadcast(this, 1, stopIntent, PendingIntent.FLAG_ONE_SHOT)
+        );
+
         Notification notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL)
                 .setContentTitle(getResources().getString(R.string.service_title))
                 .setContentText(getResources().getString(R.string.service_description))
@@ -75,6 +100,7 @@ public class FetchService extends Service implements Observer {
                         1,
                         activityIntent,
                         PendingIntent.FLAG_CANCEL_CURRENT))
+                .addAction(actionBuilder.build())
                 .build();
 
         startForeground(1, notification);
@@ -95,6 +121,23 @@ public class FetchService extends Service implements Observer {
         m_ready = true;
     }
 
+    public void stop() {
+        if (m_ready) {
+            Log.i("PARKMAN", "Stopping service");
+
+            if (m_watcher != null) {
+                m_watcher.stop();
+            }
+
+            m_ready = false;
+            GlobalData.getInstance().setWatcher(null);
+            GlobalData.getInstance().setProvider(null);
+
+            stopForeground(true);
+            stopSelf();
+        }
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -102,6 +145,8 @@ public class FetchService extends Service implements Observer {
         if (m_watcher != null) {
             m_watcher.stop();
         }
+
+        unregisterReceiver(m_receiver);
 
         m_ready = false;
         GlobalData.getInstance().setWatcher(null);
@@ -164,7 +209,7 @@ public class FetchService extends Service implements Observer {
         Log.i("FetchService", "New places available");
 
         Intent intent = new Intent(this, ChangeAvailabilityActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_USER_ACTION);
         intent.putExtra(ChangeAvailabilityActivity.Extras.ALL_OCCUPIED, false);
         intent.putExtra(ChangeAvailabilityActivity.Extras.PARK_NAME, m_provider.getParkNames().get(key));
         startActivity(intent);
@@ -174,7 +219,7 @@ public class FetchService extends Service implements Observer {
         Log.i("FetchService", "Places have ended");
 
         Intent intent = new Intent(this, ChangeAvailabilityActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_USER_ACTION);
         intent.putExtra(ChangeAvailabilityActivity.Extras.ALL_OCCUPIED, true);
         intent.putExtra(ChangeAvailabilityActivity.Extras.PARK_NAME, m_provider.getParkNames().get(key));
         startActivity(intent);
