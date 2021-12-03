@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -33,12 +34,14 @@ import cz.swisz.parkman.backend.ParkingData;
 public class FetchService extends Service implements Observer {
     private static final String NOTIFICATION_CHANNEL = "parkman.service";
     private static final String BROADCAST_STOP = "cz.swisz.parkman.ACTION_STOP";
+    private static final String WAKELOCK_TAG = "Parkman:service";
     private boolean m_ready;
 
     private DataWatcher m_watcher;
     private DataProvider m_provider;
     private Map<Long, Boolean> m_previousData;
     private BroadcastReceiver m_receiver;
+    private PowerManager.WakeLock m_wakelock;
 
     public static class FetchBinder extends Binder {
         private final FetchService m_service;
@@ -115,6 +118,12 @@ public class FetchService extends Service implements Observer {
         m_watcher.addObserver(this);
         m_watcher.start(m_provider);
 
+        if (m_wakelock == null) {
+            PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+            m_wakelock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG);
+            m_wakelock.acquire(3 * 60 * 1000L /*3 minutes*/);
+        }
+
         GlobalData.getInstance().setWatcher(m_watcher);
         GlobalData.getInstance().setProvider(m_provider);
 
@@ -136,6 +145,11 @@ public class FetchService extends Service implements Observer {
             stopForeground(true);
             stopSelf();
         }
+
+        if (m_wakelock != null) {
+            m_wakelock.release();
+            m_wakelock = null;
+        }
     }
 
     @Override
@@ -144,6 +158,11 @@ public class FetchService extends Service implements Observer {
 
         if (m_watcher != null) {
             m_watcher.stop();
+        }
+
+        if (m_wakelock != null) {
+            m_wakelock.release();
+            m_wakelock = null;
         }
 
         unregisterReceiver(m_receiver);
@@ -179,7 +198,15 @@ public class FetchService extends Service implements Observer {
         return map;
     }
 
+    private void renewWakelock() {
+        if (m_wakelock != null) {
+            m_wakelock.acquire(5 * 60 * 1000L /*5 minutes*/);
+        }
+    }
+
     private void updateState() {
+        renewWakelock();
+
         Map<Long, Boolean> newState = getParkPlaceState();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String ignored = prefs.getString(MainActivity.PrefKeys.IGNORED_PARKS, "");
@@ -209,7 +236,10 @@ public class FetchService extends Service implements Observer {
         Log.i("FetchService", "New places available");
 
         Intent intent = new Intent(this, ChangeAvailabilityActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_USER_ACTION);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_NO_USER_ACTION
+                | Intent.FLAG_ACTIVITY_NO_HISTORY
+                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         intent.putExtra(ChangeAvailabilityActivity.Extras.ALL_OCCUPIED, false);
         intent.putExtra(ChangeAvailabilityActivity.Extras.PARK_NAME, m_provider.getParkNames().get(key));
         startActivity(intent);
@@ -219,7 +249,10 @@ public class FetchService extends Service implements Observer {
         Log.i("FetchService", "Places have ended");
 
         Intent intent = new Intent(this, ChangeAvailabilityActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_USER_ACTION);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_NO_USER_ACTION
+                | Intent.FLAG_ACTIVITY_NO_HISTORY
+                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         intent.putExtra(ChangeAvailabilityActivity.Extras.ALL_OCCUPIED, true);
         intent.putExtra(ChangeAvailabilityActivity.Extras.PARK_NAME, m_provider.getParkNames().get(key));
         startActivity(intent);

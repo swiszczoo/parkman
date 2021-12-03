@@ -15,7 +15,7 @@ public class MockDataProvider implements DataProvider {
     public Map<Long, ParkingData> fetchData() throws FetchException {
         current--;
         if (current == -1) {
-            current = 60;
+            current = 20;
         }
 
         Map<Long, ParkingData> result = new HashMap<>();

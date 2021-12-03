@@ -1,6 +1,8 @@
 package cz.swisz.parkman.gui;
 
+import android.app.KeyguardManager;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
@@ -60,6 +62,12 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
         window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
         window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        if (Build.VERSION.SDK_INT >= 26) {
+            KeyguardManager mgr = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
+            mgr.requestDismissKeyguard(this, null);
+        }
 
         m_root = findViewById(R.id.avail_root);
         m_label = findViewById(R.id.avail_text);
