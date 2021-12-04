@@ -175,6 +175,7 @@ public class FetchService extends Service implements Observer {
         unregisterReceiver(m_receiver);
 
         m_ready = false;
+
         GlobalData.getInstance().setWatcher(null);
         GlobalData.getInstance().setProvider(null);
     }

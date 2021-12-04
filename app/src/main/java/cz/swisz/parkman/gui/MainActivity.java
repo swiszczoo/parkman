@@ -249,12 +249,16 @@ public class MainActivity extends AppCompatActivity implements Observer {
                 Log.i(TAG, "ParkMan service disconnected");
 
                 synchronized (MainActivity.this) {
+                    m_provider = DataProviderFactory.newDefaultProvider();
 
+                    m_watcher = new DataWatcher();
+                    m_watcher.addObserver(MainActivity.this);
+                    m_watcher.start(m_provider);
                 }
             }
         };
 
-        bindService(service, m_connection, BIND_ABOVE_CLIENT | BIND_AUTO_CREATE);
+        bindService(service, m_connection, BIND_ABOVE_CLIENT);
     }
 
     @Override
