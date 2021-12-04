@@ -43,7 +43,6 @@ public class MainActivity extends AppCompatActivity implements Observer {
     }
 
     private static final String TAG = "PARKMAN";
-    private static final String NOTIFICATION_CHANNEL = "parkman.service";
 
     private DataProvider m_provider;
     private Map<Long, String> m_parkNames;
@@ -207,13 +206,21 @@ public class MainActivity extends AppCompatActivity implements Observer {
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel serviceChannel = new NotificationChannel(
-                    NOTIFICATION_CHANNEL,
+                    FetchService.NOTIFICATION_CHANNEL,
                     getResources().getString(R.string.service_title),
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+
+            NotificationChannel placeChannel = new NotificationChannel(
+                    FetchService.FREEPLACE_CHANNEL,
+                    getResources().getString(R.string.freeplace_channel),
                     NotificationManager.IMPORTANCE_HIGH
             );
+            placeChannel.setSound(null, null);
 
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(serviceChannel);
+            manager.createNotificationChannel(placeChannel);
         }
     }
 

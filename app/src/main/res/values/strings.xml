@@ -18,4 +18,7 @@
     <string name="tts_no_more">Attention! No more places at %s parking lot</string>
     <string name="tts_few">Places are available at %s parking lot</string>
     <string name="action_stop">Stop</string>
+    <string name="freeplace_channel">Place state change notifications</string>
+    <string name="freeplace_new_title">New free places!</string>
+    <string name="freeplace_end_title">No more free places!</string>
 </resources>
