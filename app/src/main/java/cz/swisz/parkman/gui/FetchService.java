@@ -2,6 +2,7 @@ package cz.swisz.parkman.gui;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -9,7 +10,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.BitmapFactory;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
@@ -20,6 +23,7 @@ import androidx.core.app.NotificationCompat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import cz.swisz.parkman.R;
@@ -32,9 +36,12 @@ import cz.swisz.parkman.backend.Observer;
 import cz.swisz.parkman.backend.ParkingData;
 
 public class FetchService extends Service implements Observer {
-    private static final String NOTIFICATION_CHANNEL = "parkman.service";
+    public static final String NOTIFICATION_CHANNEL = "parkman.service";
+    public static final String FREEPLACE_CHANNEL = "parkman.places";
+
     private static final String BROADCAST_STOP = "cz.swisz.parkman.ACTION_STOP";
     private static final String WAKELOCK_TAG = "Parkman:service";
+    private static final int FREEPLACE_NOTIFICATION_ID = 1001;
     private boolean m_ready;
 
     private DataWatcher m_watcher;
@@ -168,6 +175,7 @@ public class FetchService extends Service implements Observer {
         unregisterReceiver(m_receiver);
 
         m_ready = false;
+
         GlobalData.getInstance().setWatcher(null);
         GlobalData.getInstance().setProvider(null);
     }
@@ -232,29 +240,77 @@ public class FetchService extends Service implements Observer {
         m_previousData = newState;
     }
 
+    @SuppressLint("UnspecifiedImmutableFlag")
     private void showNewPlacesScreen(Long key) {
         Log.i("FetchService", "New places available");
 
         Intent intent = new Intent(this, ChangeAvailabilityActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_NO_USER_ACTION
+                | Intent.FLAG_FROM_BACKGROUND
                 | Intent.FLAG_ACTIVITY_NO_HISTORY
                 | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         intent.putExtra(ChangeAvailabilityActivity.Extras.ALL_OCCUPIED, false);
         intent.putExtra(ChangeAvailabilityActivity.Extras.PARK_NAME, m_provider.getParkNames().get(key));
-        startActivity(intent);
+        intent.putExtra(ChangeAvailabilityActivity.Extras.NOTIFICATION_TO_DISMISS, FREEPLACE_NOTIFICATION_ID);
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            startActivity(intent);
+        } else {
+            PendingIntent pending = PendingIntent.getActivity(this, 2, intent,
+                    PendingIntent.FLAG_CANCEL_CURRENT);
+
+            Notification notification = new Notification.Builder(this, FREEPLACE_CHANNEL)
+                    .setSmallIcon(R.drawable.baseline_sentiment_very_satisfied_24)
+                    .setLargeIcon(BitmapFactory.decodeResource(
+                            getResources(), R.drawable.baseline_sentiment_very_satisfied_48))
+                    .setColorized(true)
+                    .setColor(getResources().getColor(R.color.available))
+                    .setContentTitle(getResources().getString(R.string.freeplace_new_title))
+                    .setContentText(String.format(Locale.getDefault(),
+                            getResources().getString(R.string.tts_few),
+                            m_provider.getParkNames().get(key)))
+                    .setFullScreenIntent(pending, true)
+                    .build();
+
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            manager.notify(FREEPLACE_NOTIFICATION_ID, notification);
+        }
     }
 
+    @SuppressLint("UnspecifiedImmutableFlag")
     private void showNoPlacesScreen(Long key) {
         Log.i("FetchService", "Places have ended");
 
         Intent intent = new Intent(this, ChangeAvailabilityActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_NO_USER_ACTION
+                | Intent.FLAG_FROM_BACKGROUND
                 | Intent.FLAG_ACTIVITY_NO_HISTORY
                 | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         intent.putExtra(ChangeAvailabilityActivity.Extras.ALL_OCCUPIED, true);
         intent.putExtra(ChangeAvailabilityActivity.Extras.PARK_NAME, m_provider.getParkNames().get(key));
-        startActivity(intent);
+        intent.putExtra(ChangeAvailabilityActivity.Extras.NOTIFICATION_TO_DISMISS, FREEPLACE_NOTIFICATION_ID);
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            startActivity(intent);
+        } else {
+            PendingIntent pending = PendingIntent.getActivity(this, 2, intent,
+                    PendingIntent.FLAG_CANCEL_CURRENT);
+
+            Notification notification = new Notification.Builder(this, FREEPLACE_CHANNEL)
+                    .setSmallIcon(R.drawable.baseline_sentiment_very_dissatisfied_24)
+                    .setLargeIcon(BitmapFactory.decodeResource(
+                            getResources(), R.drawable.baseline_sentiment_very_dissatisfied_48))
+                    .setColorized(true)
+                    .setColor(getResources().getColor(R.color.available))
+                    .setContentTitle(getResources().getString(R.string.freeplace_end_title))
+                    .setContentText(String.format(Locale.getDefault(),
+                            getResources().getString(R.string.tts_no_more),
+                            m_provider.getParkNames().get(key)))
+                    .setFullScreenIntent(pending, true)
+                    .build();
+
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            manager.notify(FREEPLACE_NOTIFICATION_ID, notification);
+        }
     }
 }

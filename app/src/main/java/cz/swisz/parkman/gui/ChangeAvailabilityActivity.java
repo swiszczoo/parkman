@@ -1,6 +1,7 @@
 package cz.swisz.parkman.gui;
 
 import android.app.KeyguardManager;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,6 +37,7 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
     public static final class Extras {
         public static final String ALL_OCCUPIED = "all_occupied";
         public static final String PARK_NAME = "park_name";
+        public static final String NOTIFICATION_TO_DISMISS = "notification_dismiss";
     }
 
     private static int TIMEOUT_MS = 10000;
@@ -86,6 +88,20 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
         DataWatcher watcher = GlobalData.getInstance().getWatcher();
         if (watcher != null) {
             watcher.addObserver(this);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        Intent intt = getIntent();
+        if (intt != null) {
+            int notificationId = intt.getIntExtra(Extras.NOTIFICATION_TO_DISMISS, -1);
+            if(notificationId > 0) {
+                NotificationManager mgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                mgr.cancel(notificationId);
+            }
         }
     }
 
@@ -205,15 +221,18 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
 
     @Override
     public void onInit(int status) {
-        if(status == TextToSpeech.SUCCESS) {
-            if(m_tts.setLanguage(Locale.forLanguageTag("PL_pl")) != TextToSpeech.LANG_MISSING_DATA) {
+        if (status == TextToSpeech.SUCCESS) {
+            m_tts.addEarcon("[happy]", getPackageName(), R.raw.notify_new);
+            m_tts.addEarcon("[sad]", getPackageName(), R.raw.notify_end);
+            if (m_tts.setLanguage(Locale.forLanguageTag("PL_pl")) != TextToSpeech.LANG_MISSING_DATA) {
                 boolean occupied = getIntent().getBooleanExtra(Extras.ALL_OCCUPIED, true);
                 String format = occupied ? getString(R.string.tts_no_more) : getString(R.string.tts_few);
+
+                m_tts.playEarcon(occupied ? "[sad]" : "[happy]", TextToSpeech.QUEUE_ADD, null, null);
                 m_tts.speak(String.format(format, getIntent().getStringExtra(Extras.PARK_NAME)),
                         TextToSpeech.QUEUE_ADD, null,
                         String.valueOf(System.currentTimeMillis()));
-            }
-            else {
+            } else {
                 Log.w("ChangeAvailability", "TTS does not work");
             }
         }

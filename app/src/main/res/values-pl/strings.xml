@@ -19,4 +19,7 @@
     <string name="tts_no_more">Uwaga! Koniec miejsc na parkingu %s</string>
     <string name="tts_few">Nowe miejsca parkingowe na parkingu %s</string>
     <string name="action_stop">Zatrzymaj</string>
+    <string name="freeplace_channel">Powiadomienia o zmianie stanu miejsc parkingowych</string>
+    <string name="freeplace_new_title">Dostępne nowe wolne miejsca!</string>
+    <string name="freeplace_end_title">Koniec wolnych miejsc!</string>
 </resources>
