@@ -1,10 +1,11 @@
 package cz.swisz.parkman.backend;
 
+import androidx.annotation.Nullable;
+
 import java.util.Objects;
 
 public class ParkingData {
-    enum Trend
-    {
+    enum Trend {
         THE_SAME,
         UP,
         DOWN
@@ -15,15 +16,17 @@ public class ParkingData {
     public String dataTimestamp; // ISO 8601
     public Trend trend;
     public long freeCount;
+    @Nullable
+    public ChartPoints chart;
 
-    ParkingData( long snapshotId, long parkingId,
-                 String dataTimestamp, Trend trend, long freeCount )
-    {
+    ParkingData(long snapshotId, long parkingId, String dataTimestamp, Trend trend, long freeCount,
+                @Nullable ChartPoints chart) {
         this.snapshotId = snapshotId;
         this.parkingId = parkingId;
         this.dataTimestamp = dataTimestamp;
         this.trend = trend;
         this.freeCount = freeCount;
+        this.chart = chart;
     }
 
     @Override

@@ -128,7 +128,33 @@ public final class PwrDataProvider implements DataProvider {
                 Long.parseLong(json.getString("parking_id")),
                 json.getString("czas_pomiaru"),
                 freeTrend,
-                Long.parseLong(json.getString("liczba_miejsc"))
+                Long.parseLong(json.getString("liczba_miejsc")),
+                parseChartData(json.getJsonObject("chart"))
         );
+    }
+
+    private ChartPoints parseChartData(JsonObject chartObj) throws NumberFormatException {
+        ChartPoints chart = new ChartPoints();
+
+        if (!chartObj.containsKey("data") || !chartObj.containsKey("x")) {
+            return chart;
+        }
+
+        JsonArray dataArr = chartObj.getJsonArray("data");
+        JsonArray xArr = chartObj.getJsonArray("x");
+
+        if (dataArr.size() != xArr.size()) {
+            return chart;
+        }
+
+        // We skip the first element because for some unknown reasons, it contains an array JSON key
+        for (int i = 1; i < dataArr.size(); i++) {
+            String time = xArr.getString(i);
+            int quantity = Integer.parseInt(dataArr.getString(i));
+
+            chart.parsePoint(time, quantity);
+        }
+
+        return chart;
     }
 }

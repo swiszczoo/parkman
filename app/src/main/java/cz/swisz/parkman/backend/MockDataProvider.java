@@ -12,7 +12,7 @@ public class MockDataProvider implements DataProvider {
     }
 
     @Override
-    public Map<Long, ParkingData> fetchData() throws FetchException {
+    public Map<Long, ParkingData> fetchData() {
         current--;
         if (current == -1) {
             current = 20;
@@ -20,7 +20,7 @@ public class MockDataProvider implements DataProvider {
 
         Map<Long, ParkingData> result = new HashMap<>();
         ParkingData data = new ParkingData(0,1L,
-                "AAAAA", ParkingData.Trend.DOWN, current);
+                "AAAAA", ParkingData.Trend.DOWN, current, null);
         result.put(1L, data);
 
         return result;

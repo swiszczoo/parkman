@@ -86,8 +86,7 @@ public class DataWatcher implements Observable {
         m_executor.submit(() -> {
             try {
                 processData();
-            } catch (FetchException ignore) {
-            }
+            } catch (FetchException ignore) {}
         });
     }
 
