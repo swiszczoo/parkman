@@ -22,4 +22,6 @@
     <string name="freeplace_channel">Powiadomienia o zmianie stanu miejsc parkingowych</string>
     <string name="freeplace_new_title">Dostępne nowe wolne miejsca!</string>
     <string name="freeplace_end_title">Koniec wolnych miejsc!</string>
+    <string name="availability_chart_label">Wykres dostępności wolnych miejsc:</string>
+    <string name="park_details">Szczegóły parkingu</string>
 </resources>

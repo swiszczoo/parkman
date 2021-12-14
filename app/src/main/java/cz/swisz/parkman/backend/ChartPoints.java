@@ -19,7 +19,7 @@ public class ChartPoints {
         }
     }
 
-    private ArrayList<Point> m_points;
+    private final ArrayList<Point> m_points;
 
     ChartPoints() {
         m_points = new ArrayList<>();

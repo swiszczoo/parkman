@@ -21,4 +21,6 @@
     <string name="freeplace_channel">Place state change notifications</string>
     <string name="freeplace_new_title">New free places!</string>
     <string name="freeplace_end_title">No more free places!</string>
+    <string name="availability_chart_label">Free place availability chart:</string>
+    <string name="park_details">Parking details</string>
 </resources>
