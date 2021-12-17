@@ -2,31 +2,45 @@ package cz.swisz.parkman.backend;
 
 import android.annotation.SuppressLint;
 
+import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Objects;
 
 public class ChartPoints {
-    private static class Point {
+    private static class InternalPoint {
         Calendar time;
         int quantity;
 
-        private Point(Calendar time, int quantity) {
+        private InternalPoint(Calendar time, int quantity) {
             this.time = time;
             this.quantity = quantity;
         }
     }
 
-    private final ArrayList<Point> m_points;
+    public static class DataPoint {
+        public int hours;
+        public int minutes;
+        public int quantity;
+
+        private DataPoint(int hours, int minutes, int quantity) {
+            this.hours = hours;
+            this.minutes = minutes;
+            this.quantity = quantity;
+        }
+    }
+
+    private final ArrayList<InternalPoint> m_points;
 
     ChartPoints() {
         m_points = new ArrayList<>();
     }
 
     public void addPoint(Calendar time, int quantity) {
-        Point pnt = new Point(time, quantity);
+        InternalPoint pnt = new InternalPoint(time, quantity);
         m_points.add(pnt);
     }
 
@@ -81,10 +95,23 @@ public class ChartPoints {
             return true;
         }
 
-        if (calendar.get(Calendar.HOUR) < hour ) {
+        if (calendar.get(Calendar.HOUR) < hour) {
             return false;
         }
 
         return calendar.get(Calendar.MINUTE) > minute;
+    }
+
+    public List<DataPoint> getPoints() {
+        List<DataPoint> output = new ArrayList<>();
+
+        for (InternalPoint pnt : m_points) {
+            output.add(new DataPoint(
+                    pnt.time.get(Calendar.HOUR_OF_DAY),
+                    pnt.time.get(Calendar.MINUTE),
+                    pnt.quantity));
+        }
+
+        return output;
     }
 }

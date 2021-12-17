@@ -144,6 +144,13 @@ public class MainActivity extends AppCompatActivity implements Observer {
                 saveSharedPrefs();
             });
 
+            fragment.setOnLongClickListener(v -> {
+                Long key = parking.getKey();
+                openParkDetails(key);
+
+                return true;
+            });
+
             m_fragments.put(parking.getKey(), fragment);
             m_panel.addView(fragment);
         }
@@ -267,5 +274,11 @@ public class MainActivity extends AppCompatActivity implements Observer {
             Log.i(TAG, "New data arrived!");
             runOnUiThread(() -> updateData(m_watcher.getCurrentData()));
         }
+    }
+
+    private void openParkDetails(Long key) {
+        Intent intt = new Intent(this, ParkDetailsActivity.class);
+        intt.putExtra(ParkDetailsActivity.EXTRA_PARK_ID, key.longValue());
+        startActivity(intt);
     }
 }
