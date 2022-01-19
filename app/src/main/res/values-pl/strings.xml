@@ -24,4 +24,14 @@
     <string name="freeplace_end_title">Koniec wolnych miejsc!</string>
     <string name="availability_chart_label">Wykres dostępności wolnych miejsc:</string>
     <string name="park_details">Szczegóły parkingu</string>
+    <string name="free_hour">Wolne miejsca o godzinie</string>
+    <string name="calendar_label">Kalendarz danych:</string>
+    <string name="week_1">Pon</string>
+    <string name="week_2">Wt</string>
+    <string name="week_3">Śr</string>
+    <string name="week_4">Czw</string>
+    <string name="week_5">Pt</string>
+    <string name="week_6">So</string>
+    <string name="week_7">Nd</string>
+    <string name="chart_no_data">Brak danych</string>
 </resources>

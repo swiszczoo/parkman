@@ -1,4 +1,4 @@
-package cz.swisz.parkman.gui;
+package cz.swisz.parkman.gui.views;
 
 import android.content.Context;
 import android.content.res.Resources;

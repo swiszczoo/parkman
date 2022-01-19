@@ -32,4 +32,8 @@ public class MockDataProvider implements DataProvider {
         parks.put(1L, "Test");
         return parks;
     }
+
+    @Override
+    public void close() {
+    }
 }

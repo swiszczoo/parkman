@@ -2,7 +2,10 @@ package cz.swisz.parkman.backend;
 
 import android.annotation.SuppressLint;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,14 +13,24 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 
-public class ChartPoints {
-    private static class InternalPoint {
-        Calendar time;
+public class ChartPoints implements Serializable {
+    private static class InternalPoint implements Serializable {
+        transient Calendar time;
+        long millis;
         int quantity;
 
         private InternalPoint(Calendar time, int quantity) {
             this.time = time;
+            this.millis = time.getTimeInMillis();
             this.quantity = quantity;
+        }
+
+        private void readObject(ObjectInputStream in)
+                throws IOException, ClassNotFoundException {
+            in.defaultReadObject();
+
+            this.time = Calendar.getInstance();
+            this.time.setTimeInMillis(this.millis);
         }
     }
 

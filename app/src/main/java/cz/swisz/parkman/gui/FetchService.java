@@ -34,6 +34,7 @@ import cz.swisz.parkman.backend.GlobalData;
 import cz.swisz.parkman.backend.Observable;
 import cz.swisz.parkman.backend.Observer;
 import cz.swisz.parkman.backend.ParkingData;
+import cz.swisz.parkman.utils.RefCounter;
 
 public class FetchService extends Service implements Observer {
     public static final String NOTIFICATION_CHANNEL = "parkman.service";
@@ -87,52 +88,63 @@ public class FetchService extends Service implements Observer {
             };
 
             registerReceiver(m_receiver, new IntentFilter(BROADCAST_STOP));
+
+            Intent stopIntent = new Intent();
+            stopIntent.setAction(BROADCAST_STOP);
+
+            NotificationCompat.Action.Builder actionBuilder = new NotificationCompat.Action.Builder(
+                    null,
+                    getString(R.string.action_stop),
+                    PendingIntent.getBroadcast(this, 1, stopIntent, PendingIntent.FLAG_ONE_SHOT)
+            );
+
+            Notification notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL)
+                    .setContentTitle(getResources().getString(R.string.service_title))
+                    .setContentText(getResources().getString(R.string.service_description))
+                    .setOngoing(true)
+                    .setColorized(true)
+                    .setColor(getResources().getColor(R.color.purple_500))
+                    .setSmallIcon(R.drawable.baseline_podcasts_24)
+                    .setContentIntent(PendingIntent.getActivity(
+                            this,
+                            1,
+                            activityIntent,
+                            PendingIntent.FLAG_CANCEL_CURRENT))
+                    .addAction(actionBuilder.build())
+                    .build();
+
+            startForeground(1, notification);
+            setupService();
         }
-
-        Intent stopIntent = new Intent();
-        stopIntent.setAction(BROADCAST_STOP);
-
-        NotificationCompat.Action.Builder actionBuilder = new NotificationCompat.Action.Builder(
-                null,
-                getString(R.string.action_stop),
-                PendingIntent.getBroadcast(this, 1, stopIntent, PendingIntent.FLAG_ONE_SHOT)
-        );
-
-        Notification notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL)
-                .setContentTitle(getResources().getString(R.string.service_title))
-                .setContentText(getResources().getString(R.string.service_description))
-                .setOngoing(true)
-                .setColorized(true)
-                .setColor(getResources().getColor(R.color.purple_500))
-                .setSmallIcon(R.drawable.baseline_podcasts_24)
-                .setContentIntent(PendingIntent.getActivity(
-                        this,
-                        1,
-                        activityIntent,
-                        PendingIntent.FLAG_CANCEL_CURRENT))
-                .addAction(actionBuilder.build())
-                .build();
-
-        startForeground(1, notification);
-        setupService();
 
         return START_REDELIVER_INTENT;
     }
 
     private void setupService() {
-        m_provider = DataProviderFactory.newDefaultProvider();
-        m_watcher = new DataWatcher();
+        if (!GlobalData.getInstance().getProvider().isAllocated()) {
+            m_provider = DataProviderFactory.newDefaultProvider();
+            GlobalData.getInstance().setProvider(new RefCounter<>(m_provider));
+        }
+        else {
+            m_provider = GlobalData.getInstance().getProvider().acquire();
+        }
+
+        if (!GlobalData.getInstance().getWatcher().isAllocated()) {
+            m_watcher = new DataWatcher();
+            m_watcher.start(m_provider);
+            GlobalData.getInstance().setWatcher(new RefCounter<>(m_watcher));
+        }
+        else {
+            m_watcher = GlobalData.getInstance().getWatcher().acquire();
+        }
+
         m_watcher.addObserver(this);
-        m_watcher.start(m_provider);
 
         if (m_wakelock == null) {
             PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
             m_wakelock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG);
             m_wakelock.acquire(3 * 60 * 1000L /*3 minutes*/);
         }
-
-        GlobalData.getInstance().setWatcher(m_watcher);
-        GlobalData.getInstance().setProvider(m_provider);
 
         m_ready = true;
     }
@@ -141,13 +153,7 @@ public class FetchService extends Service implements Observer {
         if (m_ready) {
             Log.i("PARKMAN", "Stopping service");
 
-            if (m_watcher != null) {
-                m_watcher.stop();
-            }
-
             m_ready = false;
-            GlobalData.getInstance().setWatcher(null);
-            GlobalData.getInstance().setProvider(null);
 
             stopForeground(true);
             stopSelf();
@@ -163,10 +169,6 @@ public class FetchService extends Service implements Observer {
     public void onDestroy() {
         super.onDestroy();
 
-        if (m_watcher != null) {
-            m_watcher.stop();
-        }
-
         if (m_wakelock != null) {
             m_wakelock.release();
             m_wakelock = null;
@@ -176,8 +178,8 @@ public class FetchService extends Service implements Observer {
 
         m_ready = false;
 
-        GlobalData.getInstance().setWatcher(null);
-        GlobalData.getInstance().setProvider(null);
+        GlobalData.getInstance().getWatcher().release(m_watcher);
+        GlobalData.getInstance().getProvider().release(m_provider);
     }
 
     public boolean isServiceReady() {
@@ -264,7 +266,7 @@ public class FetchService extends Service implements Observer {
                     .setLargeIcon(BitmapFactory.decodeResource(
                             getResources(), R.drawable.baseline_sentiment_very_satisfied_48))
                     .setColorized(true)
-                    .setColor(getResources().getColor(R.color.available))
+                    .setColor(getResources().getColor(R.color.available, getTheme()))
                     .setContentTitle(getResources().getString(R.string.freeplace_new_title))
                     .setContentText(String.format(Locale.getDefault(),
                             getResources().getString(R.string.tts_few),
@@ -301,7 +303,7 @@ public class FetchService extends Service implements Observer {
                     .setLargeIcon(BitmapFactory.decodeResource(
                             getResources(), R.drawable.baseline_sentiment_very_dissatisfied_48))
                     .setColorized(true)
-                    .setColor(getResources().getColor(R.color.available))
+                    .setColor(getResources().getColor(R.color.available, getTheme()))
                     .setContentTitle(getResources().getString(R.string.freeplace_end_title))
                     .setContentText(String.format(Locale.getDefault(),
                             getResources().getString(R.string.tts_no_more),

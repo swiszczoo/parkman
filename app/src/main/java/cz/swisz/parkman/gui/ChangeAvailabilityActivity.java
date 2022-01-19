@@ -31,6 +31,7 @@ import cz.swisz.parkman.backend.GlobalData;
 import cz.swisz.parkman.backend.Observable;
 import cz.swisz.parkman.backend.Observer;
 import cz.swisz.parkman.backend.ParkingData;
+import cz.swisz.parkman.gui.views.SmallParkingFragment;
 
 public class ChangeAvailabilityActivity extends AppCompatActivity
         implements Observer, TextToSpeech.OnInitListener {
@@ -85,7 +86,7 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
         tellState();
         setupDelayedTask();
 
-        DataWatcher watcher = GlobalData.getInstance().getWatcher();
+        DataWatcher watcher = GlobalData.getInstance().getWatcher().get();
         if (watcher != null) {
             watcher.addObserver(this);
         }
@@ -109,7 +110,7 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
     protected void onDestroy() {
         super.onDestroy();
 
-        DataWatcher watcher = GlobalData.getInstance().getWatcher();
+        DataWatcher watcher = GlobalData.getInstance().getWatcher().get();
 
         if (watcher != null) {
             watcher.removeObserver(this);
@@ -151,7 +152,7 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
     }
 
     public void setupKnownParks() {
-        DataProvider provider = GlobalData.getInstance().getProvider();
+        DataProvider provider = GlobalData.getInstance().getProvider().get();
         if (provider != null) {
             Map<Long, String> allParks = provider.getParkNames();
 
@@ -179,7 +180,7 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
     }
 
     public void updateData() {
-        DataWatcher watcher = GlobalData.getInstance().getWatcher();
+        DataWatcher watcher = GlobalData.getInstance().getWatcher().get();
         if (watcher != null) {
             Map<Long, ParkingData> data = watcher.getCurrentData();
 
@@ -200,7 +201,7 @@ public class ChangeAvailabilityActivity extends AppCompatActivity
 
     @Override
     public void onStateChanged(Observable subject) {
-        if (subject == GlobalData.getInstance().getWatcher()) {
+        if (subject == GlobalData.getInstance().getWatcher().get()) {
             runOnUiThread(this::updateData);
         }
     }

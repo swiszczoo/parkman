@@ -23,4 +23,14 @@
     <string name="freeplace_end_title">No more free places!</string>
     <string name="availability_chart_label">Free place availability chart:</string>
     <string name="park_details">Parking details</string>
+    <string name="free_hour">Free places at hour</string>
+    <string name="calendar_label">Data calendar:</string>
+    <string name="week_1">Mo</string>
+    <string name="week_2">Tu</string>
+    <string name="week_3">We</string>
+    <string name="week_4">Th</string>
+    <string name="week_5">Fr</string>
+    <string name="week_6">Sa</string>
+    <string name="week_7">Su</string>
+    <string name="chart_no_data">No data available</string>
 </resources>

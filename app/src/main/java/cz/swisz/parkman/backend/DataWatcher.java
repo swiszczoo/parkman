@@ -2,15 +2,19 @@ package cz.swisz.parkman.backend;
 
 import android.util.Log;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class DataWatcher implements Observable {
+public class DataWatcher implements Observable, Closeable {
     private Set<Observer> m_observers;
     private DataProvider m_provider;
     private Timer m_timer;
@@ -58,13 +62,24 @@ public class DataWatcher implements Observable {
 
                 if (different) {
                     m_lastSnapshot = data;
+                    saveChartData();
                     notifyObservers();
                 }
             } else {
                 m_lastSnapshot = data;
+                saveChartData();
                 notifyObservers();
             }
         }
+    }
+
+    private void saveChartData() {
+        Map<Long, ChartPoints> chartMap = new HashMap<>();
+        for (Long key : m_lastSnapshot.keySet()) {
+            chartMap.put(key, Objects.requireNonNull(m_lastSnapshot.get(key)).chart);
+        }
+
+        HistoryManager.getInstance().updateCurrentData(chartMap);
     }
 
     public synchronized Map<Long, ParkingData> getCurrentData() {
@@ -115,5 +130,10 @@ public class DataWatcher implements Observable {
             Log.w("DataWatcher", "Leaked DataWatcher object. Calling emergency stop()");
             stop();
         }
+    }
+
+    @Override
+    public void close() {
+        stop();
     }
 }

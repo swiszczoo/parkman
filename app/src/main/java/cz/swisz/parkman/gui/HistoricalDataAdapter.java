@@ -1,28 +1,38 @@
 package cz.swisz.parkman.gui;
 
-import android.content.res.Resources;
-
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import cz.swisz.parkman.backend.ChartPoints;
-import cz.swisz.parkman.backend.DataProvider;
-import cz.swisz.parkman.backend.ParkingData;
+import cz.swisz.parkman.backend.HistoryManager;
 
-public class ProviderDataAdapter implements ChartDataAdapter {
-    private ParkingData m_snapshot;
+public class HistoricalDataAdapter implements ChartDataAdapter{
+    private final HistoryManager m_mgr;
+    private final Date m_date;
+    private final long m_key;
 
-    public ProviderDataAdapter(ParkingData snapshot) {
-        this.m_snapshot = snapshot;
+    public HistoricalDataAdapter(HistoryManager manager, Date date, long parkingKey) {
+        m_mgr = manager;
+        m_date = date;
+        m_key = parkingKey;
+    }
+
+    private ChartPoints retrieveChartObject() {
+        if (!m_mgr.isDayDataAvailable(m_date)) {
+            return null;
+        }
+
+        return m_mgr.getChartDataForDateAndPark(m_date, m_key);
     }
 
     @Override
     public LineData constructDataSet(DatasetFormatter formatter) {
-        ChartPoints cp = m_snapshot.chart;
+        ChartPoints cp = retrieveChartObject();
         List<ChartPoints.DataPoint> data;
         if (cp != null) {
             data = cp.getPoints();

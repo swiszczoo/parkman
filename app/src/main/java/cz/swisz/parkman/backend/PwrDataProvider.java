@@ -157,4 +157,8 @@ public final class PwrDataProvider implements DataProvider {
 
         return chart;
     }
+
+    @Override
+    public void close() {
+    }
 }

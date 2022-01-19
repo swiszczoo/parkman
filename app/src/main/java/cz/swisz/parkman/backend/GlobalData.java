@@ -1,12 +1,16 @@
 package cz.swisz.parkman.backend;
 
+import cz.swisz.parkman.utils.RefCounter;
+
 public class GlobalData {
     private static GlobalData s_inst;
 
-    private DataProvider m_provider;
-    private DataWatcher m_watcher;
+    private RefCounter<DataProvider> m_provider;
+    private RefCounter<DataWatcher> m_watcher;
 
     private GlobalData() {
+        m_provider = new RefCounter<>(null);
+        m_watcher = new RefCounter<>(null);
     }
 
     public static GlobalData getInstance() {
@@ -22,19 +26,19 @@ public class GlobalData {
         m_watcher = null;
     }
 
-    public DataProvider getProvider() {
+    public RefCounter<DataProvider> getProvider() {
         return m_provider;
     }
 
-    public void setProvider(DataProvider provider) {
+    public void setProvider(RefCounter<DataProvider> provider) {
         m_provider = provider;
     }
 
-    public DataWatcher getWatcher() {
+    public RefCounter<DataWatcher> getWatcher() {
         return m_watcher;
     }
 
-    public void setWatcher(DataWatcher watcher) {
+    public void setWatcher(RefCounter<DataWatcher> watcher) {
         m_watcher = watcher;
     }
 }

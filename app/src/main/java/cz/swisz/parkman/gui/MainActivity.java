@@ -36,6 +36,8 @@ import cz.swisz.parkman.backend.GlobalData;
 import cz.swisz.parkman.backend.Observable;
 import cz.swisz.parkman.backend.Observer;
 import cz.swisz.parkman.backend.ParkingData;
+import cz.swisz.parkman.gui.views.ParkingFragment;
+import cz.swisz.parkman.utils.RefCounter;
 
 public class MainActivity extends AppCompatActivity implements Observer {
     public static final class PrefKeys {
@@ -44,7 +46,6 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
     private static final String TAG = "PARKMAN";
 
-    private DataProvider m_provider;
     private Map<Long, String> m_parkNames;
     private ArrayList<Long> m_ignoredParks;
 
@@ -52,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements Observer {
     private LinearLayout m_panel;
     private View m_refreshOverlay;
     private View m_errorOverlay;
-    private DataWatcher m_watcher;
     private ExecutorService m_executor;
     private ServiceConnection m_connection = null;
 
@@ -63,7 +63,14 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
         m_ignoredParks = new ArrayList<>();
 
-        m_provider = DataProviderFactory.newDefaultProvider();
+        if (!GlobalData.getInstance().getProvider().isAllocated())
+        {
+            GlobalData.getInstance().setProvider(
+                    new RefCounter<>(DataProviderFactory.newDefaultProvider()));
+        }
+        else {
+            GlobalData.getInstance().getProvider().acquire();
+        }
 
         m_panel = findViewById(R.id.parking_parent);
         m_refreshOverlay = findViewById(R.id.data_refreshing);
@@ -96,9 +103,14 @@ public class MainActivity extends AppCompatActivity implements Observer {
         super.onDestroy();
         Log.i(TAG, "Destroying main activity");
 
-        if (m_watcher != null) {
-            m_watcher.removeObserver(this);
-            m_watcher.stop();
+        DataProvider provider = GlobalData.getInstance().getProvider().get();
+        GlobalData.getInstance().getProvider().release(provider);
+
+        if (GlobalData.getInstance().getWatcher().isAllocated()) {
+            DataWatcher watcher = GlobalData.getInstance().getWatcher().get();
+            watcher.removeObserver(this);
+
+            GlobalData.getInstance().getWatcher().release(watcher);
         }
     }
 
@@ -120,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
     }
 
     private void setupKnownParks() {
-        m_parkNames = m_provider.getParkNames();
+        m_parkNames = GlobalData.getInstance().getProvider().get().getParkNames();
         m_fragments = new HashMap<>();
 
         for (Map.Entry<Long, String> parking : m_parkNames.entrySet()) {
@@ -157,9 +169,19 @@ public class MainActivity extends AppCompatActivity implements Observer {
     }
 
     private void setupFixedIntervalRefreshJob() {
-        m_watcher = new DataWatcher();
-        m_watcher.addObserver(this);
-        m_watcher.start(m_provider);
+        if (!GlobalData.getInstance().getWatcher().isAllocated()) {
+            DataWatcher watcher = new DataWatcher();
+            watcher.addObserver(this);
+            watcher.start(GlobalData.getInstance().getProvider().get());
+
+            GlobalData.getInstance().setWatcher(new RefCounter<>(watcher));
+        }
+        else {
+            GlobalData.getInstance().getWatcher().acquire();
+            GlobalData.getInstance().getWatcher().get().addObserver(this);
+        }
+
+        GlobalData.getInstance().getWatcher().get().updateNow();
     }
 
     private void postUpdateDataJob() {
@@ -171,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
             Map<Long, ParkingData> data = null;
             try {
-                data = m_provider.fetchData();
+                data = GlobalData.getInstance().getProvider().get().fetchData();
             } catch (FetchException e) {
                 e.printStackTrace();
             }
@@ -243,25 +265,11 @@ public class MainActivity extends AppCompatActivity implements Observer {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 Log.i(TAG, "ParkMan service connected");
-
-                synchronized (MainActivity.this) {
-                    m_watcher = GlobalData.getInstance().getWatcher();
-                    m_watcher.addObserver(MainActivity.this);
-                    m_provider = GlobalData.getInstance().getProvider();
-                }
             }
 
             @Override
             public void onServiceDisconnected(ComponentName name) {
                 Log.i(TAG, "ParkMan service disconnected");
-
-                synchronized (MainActivity.this) {
-                    m_provider = DataProviderFactory.newDefaultProvider();
-
-                    m_watcher = new DataWatcher();
-                    m_watcher.addObserver(MainActivity.this);
-                    m_watcher.start(m_provider);
-                }
             }
         };
 
@@ -270,9 +278,9 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
     @Override
     public synchronized void onStateChanged(Observable subject) {
-        if (subject == m_watcher) {
+        if (subject == GlobalData.getInstance().getWatcher().get()) {
             Log.i(TAG, "New data arrived!");
-            runOnUiThread(() -> updateData(m_watcher.getCurrentData()));
+            runOnUiThread(() -> updateData(GlobalData.getInstance().getWatcher().get().getCurrentData()));
         }
     }
 

@@ -13,8 +13,13 @@
         <entry key="..\:/Users/lukas/StudioProjects/parkman/app/src/main/res/drawable/baseline_sentiment_very_dissatisfied_48.xml" value="0.246875" />
         <entry key="..\:/Users/lukas/StudioProjects/parkman/app/src/main/res/drawable/baseline_sentiment_very_satisfied_24.xml" value="0.246875" />
         <entry key="..\:/Users/lukas/StudioProjects/parkman/app/src/main/res/drawable/baseline_sentiment_very_satisfied_48.xml" value="0.246875" />
+        <entry key="..\:/Users/lukas/StudioProjects/parkman/app/src/main/res/drawable/bg_cal_available.xml" value="0.246875" />
+        <entry key="..\:/Users/lukas/StudioProjects/parkman/app/src/main/res/drawable/bg_cal_available_selected.xml" value="0.246875" />
+        <entry key="..\:/Users/lukas/StudioProjects/parkman/app/src/main/res/drawable/bg_cal_selected.xml" value="0.246875" />
+        <entry key="..\:/Users/lukas/StudioProjects/parkman/app/src/main/res/drawable/fg_cal_available.xml" value="0.246875" />
         <entry key="..\:/Users/lukas/StudioProjects/parkman/app/src/main/res/drawable/ic_launcher.xml" value="0.246875" />
         <entry key="..\:/Users/lukas/StudioProjects/parkman/app/src/main/res/drawable/ic_launcher_background.xml" value="0.4203125" />
+        <entry key="..\:/Users/lukas/StudioProjects/parkman/app/src/main/res/layout/activity_park_details.xml" value="0.4" />
         <entry key="..\:/Users/lukas/StudioProjects/parkman/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.4203125" />
       </map>
     </option>

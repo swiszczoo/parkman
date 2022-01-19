@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:gravity="center">
+        <shape android:shape="oval">
+            <corners android:radius="100000dp" />
+            <size
+                android:width="32dp"
+                android:height="32dp" />
+            <solid android:color="#eee" />
+        </shape>
+    </item>
+</layer-list>
