@@ -3,6 +3,7 @@ package cz.swisz.parkman.utils;
 import android.util.Log;
 
 import java.io.Closeable;
+import java.io.IOException;
 
 public class RefCounter<T extends Closeable> {
     private T m_obj;
@@ -31,7 +32,12 @@ public class RefCounter<T extends Closeable> {
 
         if (m_refs == 0) {
             Log.d("RefCounter", "Releasing object " + obj.toString());
-            m_obj = null;
+            try {
+                obj.close();
+                obj = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
