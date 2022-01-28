@@ -21,10 +21,12 @@ If no emulators where running, a new instance should launch.
 
 ## Building a release APK
 To build a release APK, select `Build > Generate Signed Bundle / APK...`.
+
 ![Step 4 screenshot](readme/building4.png)
 
 This should open up a wizard. On its first page select `APK` option, then follow its steps, such
 as signing your APK with key stored in the keystore.
+
 ![Step 5 screenshot](readme/building5.png)
 
 
