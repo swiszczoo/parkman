@@ -10,3 +10,6 @@ Informatyka Stosowana (Applied Computer Science) at WUST.
 
 ## Screenshot
 ![Screenshot](readme/screenshot.png)
+
+## Building
+To get information about building, read [BUILDING.md](BUILDING.md)
