@@ -1,5 +1,7 @@
-package cz.swisz.parkman.backend;
+package cz.swisz.parkman.gui;
 
+import cz.swisz.parkman.backend.DataProvider;
+import cz.swisz.parkman.backend.DataWatcher;
 import cz.swisz.parkman.utils.RefCounter;
 
 public class GlobalData {

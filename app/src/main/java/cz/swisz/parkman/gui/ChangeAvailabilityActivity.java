@@ -27,7 +27,6 @@ import java.util.TimerTask;
 import cz.swisz.parkman.R;
 import cz.swisz.parkman.backend.DataProvider;
 import cz.swisz.parkman.backend.DataWatcher;
-import cz.swisz.parkman.backend.GlobalData;
 import cz.swisz.parkman.backend.Observable;
 import cz.swisz.parkman.backend.Observer;
 import cz.swisz.parkman.backend.ParkingData;

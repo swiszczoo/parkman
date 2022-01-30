@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -77,7 +78,10 @@ public class HistoryManager {
     }
 
     private String getCurrentFileName() {
-        return getFileNameForDate(new Date());
+        Calendar today = Calendar.getInstance();
+        today.add(Calendar.HOUR, 2);
+
+        return getFileNameForDate(today.getTime());
     }
 
     private String getFileNameForDate(Date date) {

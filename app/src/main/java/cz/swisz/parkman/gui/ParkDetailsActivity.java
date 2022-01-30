@@ -21,7 +21,6 @@ import java.util.Map;
 import cz.swisz.parkman.R;
 import cz.swisz.parkman.backend.DataProvider;
 import cz.swisz.parkman.backend.DataWatcher;
-import cz.swisz.parkman.backend.GlobalData;
 import cz.swisz.parkman.backend.HistoryManager;
 import cz.swisz.parkman.backend.ParkingData;
 import cz.swisz.parkman.gui.views.CalendarView;
