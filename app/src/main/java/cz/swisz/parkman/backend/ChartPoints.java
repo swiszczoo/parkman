@@ -60,7 +60,7 @@ public class ChartPoints implements Serializable {
     public void parsePoint(String timeString, int quantity) {
         try {
             @SuppressLint("SimpleDateFormat")
-            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
             Calendar cal = Calendar.getInstance();
             cal.setTime(Objects.requireNonNull(timeFormat.parse(timeString)));
 

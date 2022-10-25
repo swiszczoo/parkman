@@ -24,8 +24,15 @@ public final class PwrDataProvider implements DataProvider {
 
     private final String m_endpointUrl;
 
+    static class ChartCache {
+        long lastChartUpdate;
+        ChartPoints cache;
+    }
+    private Map<Long, ChartCache> m_chartCache;
+
     public PwrDataProvider(String endpointUrl) {
         m_endpointUrl = endpointUrl;
+        m_chartCache = new HashMap<>();
     }
 
     @Override
@@ -78,7 +85,7 @@ public final class PwrDataProvider implements DataProvider {
     }
 
     private String constructRequestBody(long timestamp, String operation) {
-        return String.format(Locale.GERMANY, "o=%s&ts=%d", operation, timestamp);
+        return String.format(Locale.GERMANY, "{\"o\": \"%s\", \"ts\": %d}", operation, timestamp);
     }
 
     private String getJsonFromHttpPost(String urlString, String body) throws IOException {
@@ -87,7 +94,7 @@ public final class PwrDataProvider implements DataProvider {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Accept", "application/json");
-        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
         conn.setRequestProperty("Connection", "close");
         conn.setRequestProperty("Content-Length", String.valueOf(body.length()));
         conn.setRequestProperty("Referer", "https://iparking.pwr.edu.pl/");
@@ -113,7 +120,7 @@ public final class PwrDataProvider implements DataProvider {
         }
     }
 
-    private ParkingData parseParkJsonObject(JsonObject json) throws NumberFormatException {
+    private ParkingData parseParkJsonObject(JsonObject json) throws NumberFormatException, IOException {
         ParkingData.Trend freeTrend = ParkingData.Trend.THE_SAME;
         int trendValue = Integer.parseInt(json.getString("trend"));
 
@@ -129,26 +136,26 @@ public final class PwrDataProvider implements DataProvider {
                 json.getString("czas_pomiaru"),
                 freeTrend,
                 Long.parseLong(json.getString("liczba_miejsc")),
-                parseChartData(json.getJsonObject("chart"))
+                Long.parseLong(json.getString("places")),
+                getChartData(Long.parseLong(json.getString("id")))
         );
     }
 
     private ChartPoints parseChartData(JsonObject chartObj) throws NumberFormatException {
         ChartPoints chart = new ChartPoints();
 
-        if (!chartObj.containsKey("data") || !chartObj.containsKey("x")) {
+        if (!chartObj.containsKey("data") || !chartObj.containsKey("labels")) {
             return chart;
         }
 
         JsonArray dataArr = chartObj.getJsonArray("data");
-        JsonArray xArr = chartObj.getJsonArray("x");
+        JsonArray xArr = chartObj.getJsonArray("labels");
 
         if (dataArr.size() != xArr.size()) {
             return chart;
         }
 
-        // We skip the first element because for some unknown reasons, it contains an array JSON key
-        for (int i = 1; i < dataArr.size(); i++) {
+        for (int i = 0; i < dataArr.size(); i++) {
             String time = xArr.getString(i);
             int quantity = Integer.parseInt(dataArr.getString(i));
 
@@ -156,6 +163,35 @@ public final class PwrDataProvider implements DataProvider {
         }
 
         return chart;
+    }
+
+    private ChartPoints getChartData(long parkId) throws NumberFormatException, IOException {
+        final long CHART_UPDATE_INTERVAL_MS = 1000 * 60 * 10;
+        long currentTime = System.currentTimeMillis();
+
+        ChartCache cache = m_chartCache.get(parkId);
+
+        if (cache == null || currentTime > cache.lastChartUpdate + CHART_UPDATE_INTERVAL_MS) {
+            if (cache == null) {
+                m_chartCache.put(parkId, cache = new ChartCache());
+            }
+
+            cache.lastChartUpdate = currentTime;
+            cache.cache = fetchChartData(parkId);
+        }
+
+        return cache.cache;
+    }
+
+    private ChartPoints fetchChartData(long parkId) throws IOException {
+        String json = getJsonFromHttpPost(
+                m_endpointUrl, String.format(Locale.getDefault(), "{\"i\":\"%d\",\"o\":\"get_today_chart\"}", parkId));
+
+        JsonReader reader = Json.createReader(new StringReader(json));
+        JsonObject root = reader.readObject();
+        JsonObject slots = root.getJsonObject("slots");
+
+        return parseChartData(slots);
     }
 
     @Override

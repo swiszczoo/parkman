@@ -20,7 +20,7 @@ public class MockDataProvider implements DataProvider {
 
         Map<Long, ParkingData> result = new HashMap<>();
         ParkingData data = new ParkingData(0,1L,
-                "AAAAA", ParkingData.Trend.DOWN, current, null);
+                "AAAAA", ParkingData.Trend.DOWN, current, 50, null);
         result.put(1L, data);
 
         return result;

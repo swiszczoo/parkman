@@ -16,16 +16,18 @@ public class ParkingData {
     public String dataTimestamp; // ISO 8601
     public Trend trend;
     public long freeCount;
+    public long totalCount;
     @Nullable
     public ChartPoints chart;
 
     ParkingData(long snapshotId, long parkingId, String dataTimestamp, Trend trend, long freeCount,
-                @Nullable ChartPoints chart) {
+                long totalCount, @Nullable ChartPoints chart) {
         this.snapshotId = snapshotId;
         this.parkingId = parkingId;
         this.dataTimestamp = dataTimestamp;
         this.trend = trend;
         this.freeCount = freeCount;
+        this.totalCount = totalCount;
         this.chart = chart;
     }
 
@@ -38,6 +40,7 @@ public class ParkingData {
         return snapshotId == that.snapshotId
                 && parkingId == that.parkingId
                 && freeCount == that.freeCount
+                && totalCount == that.totalCount
                 && dataTimestamp.equals(that.dataTimestamp)
                 && trend == that.trend;
     }
